@@ -6,6 +6,7 @@ const mongoose = require("mongoose");
 const http = require("http");
 const socket = require("socket.io");
 const socketIo = require("./socket.io");
+const groupRouter = require("./routes/groupRoutes");
 const PORT = process.env.PORT || 3000;
 
 const app = express();
@@ -27,6 +28,7 @@ socketIo(io);
 
 // Routes
 app.use("/api/users", userRouter);
+app.use("/api/groups", groupRouter);
 
 // connect to db and start the server
 mongoose
