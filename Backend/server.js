@@ -30,7 +30,7 @@ app.use("/api/users", userRouter);
 
 // connect to db and start the server
 mongoose
-  .connect("mongo url")
+  .connect(process.env.MONGO_URL)
   .then(() => {
     console.log("Connected to DB");
     server.listen(PORT, () => {
