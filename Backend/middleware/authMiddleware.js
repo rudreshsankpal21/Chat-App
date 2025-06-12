@@ -28,4 +28,18 @@ const protect = async (req, res, next) => {
     res.status(401).json({ message: "Not authorized , token not found" });
   }
 };
-module.exports = protect;
+
+// isAdmin Middleware
+const isAdmin = (req, res, next) => {
+  try {
+    if (req.user && req.user.isAdmin) {
+      next();
+    } else {
+      res.status(401);
+      throw new Error("Not authorized as an admin");
+    }
+  } catch (error) {
+    res.status(401).json({ message: "Not authorized as an admin" });
+  }
+};
+module.exports = { protect, isAdmin };
