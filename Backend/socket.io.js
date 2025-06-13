@@ -28,6 +28,16 @@ const socketIo = (io) => {
         user,
       });
     });
+
+    // Leave room handler
+    socket.on("leave room", (groupId) => {
+      socket.leave(groupId);
+      if (connectedUsers.has(socket.id)) {
+        // Remove user from connected users and notify others
+        connectedUsers.delete(socket.id);
+        socket.to(groupId).emit("user left", user?._id);
+      }
+    });
   });
 };
 
