@@ -38,6 +38,26 @@ const socketIo = (io) => {
         socket.to(groupId).emit("user left", user?._id);
       }
     });
+
+    // Send message handler
+    socket.on("new message", (message) => {
+      // Broadcast message to all other users of group
+      const { groupId } = message;
+      socket.to(groupId).emit("message received", message);
+    });
+
+    // Disconnect handler
+    socket.on("disconnect", () => {
+      // Remove user from connected users and notify others
+      if (connectedUsers.has(socket.id)) {
+        // get user's room info before removing
+        const { user, room } = connectedUsers.get(socket.id);
+        // Notify others in the room about user leaving
+        socket.to(room).emit("user left", user?._id);
+        // remove user from connected users
+        connectedUsers.delete(socket.id);
+      }
+    });
   });
 };
 
