@@ -5,7 +5,7 @@ const Message = require("../models/chatModel");
 const messageRouter = express.Router();
 
 // Send message
-messageRouter.post("/", async (req, res) => {
+messageRouter.post("/", protect, async (req, res) => {
   try {
     const { content, groupId } = req.body;
     const message = await Message.create({
@@ -23,4 +23,17 @@ messageRouter.post("/", async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 });
+
+// get message for a group
+messageRouter.get("/:groupId", protect, async (req, res) => {
+  try {
+    const messages = await Message.find({ group: req.params.groupId })
+      .populate("sender", "username email")
+      .sort({ createdAt: 1 });
+    res.status(200).json({ messages });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
 module.exports = messageRouter;
