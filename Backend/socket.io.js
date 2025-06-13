@@ -58,6 +58,18 @@ const socketIo = (io) => {
         connectedUsers.delete(socket.id);
       }
     });
+
+    // Typing indicator
+    socket.on("typing", (groupId, username) => {
+      // Broadcast typing indicator to all other users in the room
+      socket.to(groupId).emit("user typing", { username });
+    });
+
+    // stop Typing indicator
+    socket.on("stop typing", (groupId) => {
+      // Broadcast stop typing indicator to all other users in the room
+      socket.to(groupId).emit("user stop typing", { username: user?.username });
+    });
   });
 };
 
