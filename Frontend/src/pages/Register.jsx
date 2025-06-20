@@ -51,7 +51,7 @@ const Register = () => {
             color="white"
           >
             <Text fontSize="4xl" fontWeight="bold" mb={4}>
-              Join Our Chat Community
+              Join My Chat Community
             </Text>
             <Text fontSize="lg" maxW="400px">
               Connect with friends and start chatting instantly
