@@ -25,17 +25,21 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await axios.post(
-        `http://localhost:5000/api/user/login`,
+      const { data } = await axios.post(
+        `http://localhost:5000/api/users/login`,
         {
           email,
           password,
         }
       );
+      // Save user into local storage
+      localStorage.setItem("userInfo", JSON.stringify(data));
+      setLoading(false);
+      navigate("/chat");
     } catch (error) {
       toast({
         title: "Error",
-        description: error.response.data.message,
+        description: error.response.data.message || "An error occurred",
         status: "error",
         duration: 5000,
         isClosable: true,
@@ -127,6 +131,8 @@ const Login = () => {
                 borderColor="gray.200"
                 _hover={{ borderColor: "blue.500" }}
                 _focus={{ borderColor: "blue.500" }}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
             </FormControl>
 
@@ -142,10 +148,15 @@ const Login = () => {
                 borderColor="gray.200"
                 _hover={{ borderColor: "blue.500" }}
                 _focus={{ borderColor: "blue.500" }}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
               />
             </FormControl>
 
             <Button
+              type="submit"
+              onClick={handleSubmit}
+              isLoading={loading}
               colorScheme="blue"
               width="100%"
               size="lg"
