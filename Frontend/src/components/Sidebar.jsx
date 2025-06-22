@@ -19,7 +19,7 @@ import {
   Badge,
   Tooltip,
 } from "@chakra-ui/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FiLogOut, FiPlus, FiUsers } from "react-icons/fi";
 import { Link } from "react-router-dom";
 
@@ -27,9 +27,25 @@ const Sidebar = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [newGroupName, setNewGroupName] = useState("");
   const [newGroupDescription, setNewGroupDescription] = useState("");
+  const [isAdmin, setIsAdmin] = useState(true);
   const toast = useToast();
-  const isAdmin = true;
 
+  useEffect(() => {
+    checkAdminStatus();
+  }, []);
+
+  // Check if the login user is an admin
+  const checkAdminStatus = () => {
+    const userInfo = JSON.parse(localStorage.getItem("userInfo") || {});
+    // update admin status
+    setIsAdmin(userInfo?.isAdmin || false);
+  };
+  // fetch all groups
+  // fetch users groups
+  // create groups
+  // logout
+  // join group
+  // leave group
   // Sample groups data
   const groups = [
     {
