@@ -22,16 +22,18 @@ import {
 import { useEffect, useState } from "react";
 import { FiLogOut, FiPlus, FiUsers } from "react-icons/fi";
 import { Link } from "react-router-dom";
-
+import axios from "axios";
 const Sidebar = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [newGroupName, setNewGroupName] = useState("");
+  const [groups, setGroups] = useState([]);
   const [newGroupDescription, setNewGroupDescription] = useState("");
   const [isAdmin, setIsAdmin] = useState(true);
   const toast = useToast();
 
   useEffect(() => {
     checkAdminStatus();
+    fetchGroups();
   }, []);
 
   // Check if the login user is an admin
@@ -40,33 +42,27 @@ const Sidebar = () => {
     // update admin status
     setIsAdmin(userInfo?.isAdmin || false);
   };
+
   // fetch all groups
+  const fetchGroups = async () => {
+    try {
+      const userInfo = JSON.parse(localStorage.getItem("userInfo") || {});
+      const token = userInfo.user.token;
+      const { data } = await axios.get("http://localhost:5000/api/groups", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setGroups(data.groups);
+    } catch (error) {
+      console.log(error);
+    }
+  };
   // fetch users groups
   // create groups
   // logout
   // join group
   // leave group
   // Sample groups data
-  const groups = [
-    {
-      id: 1,
-      name: "Development Team",
-      description: "Main development team channel for daily updates",
-      isJoined: true,
-    },
-    {
-      id: 2,
-      name: "Design Team",
-      description: "Collaboration space for designers",
-      isJoined: false,
-    },
-    {
-      id: 3,
-      name: "Marketing",
-      description: "Marketing team discussions and campaigns",
-      isJoined: true,
-    },
-  ];
 
   return (
     <Box
