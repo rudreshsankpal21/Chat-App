@@ -23,10 +23,11 @@ import { useEffect, useState } from "react";
 import { FiLogOut, FiPlus, FiUsers } from "react-icons/fi";
 import { Link } from "react-router-dom";
 import axios from "axios";
-const Sidebar = () => {
+const Sidebar = ({ setSelectedGroup }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [newGroupName, setNewGroupName] = useState("");
   const [groups, setGroups] = useState([]);
+  const [usergroups, setUserGroups] = useState([]);
   const [newGroupDescription, setNewGroupDescription] = useState("");
   const [isAdmin, setIsAdmin] = useState(true);
   const toast = useToast();
@@ -53,11 +54,25 @@ const Sidebar = () => {
       });
 
       setGroups(data.groups);
+
+      // get user groups
+      const userGroups = data.groups
+        ?.filter((group) => {
+          return group?.members?.some(
+            (member) => member?._id === userInfo?._id
+          );
+        })
+        .map((group) => group?._id);
+
+      setUserGroups(userGroups);
+      console.log(userGroups);
     } catch (error) {
       console.log(error);
     }
   };
+
   // fetch users groups
+
   // create groups
   // logout
   // join group
@@ -115,9 +130,11 @@ const Sidebar = () => {
               p={4}
               cursor="pointer"
               borderRadius="lg"
-              bg={group.isJoined ? "blue.50" : "gray.50"}
+              bg={usergroups?.includes(group._id) ? "blue.50" : "gray.50"}
               borderWidth="1px"
-              borderColor={group.isJoined ? "blue.200" : "gray.200"}
+              borderColor={
+                usergroups?.includes(group._id) ? "blue.200" : "gray.200"
+              }
               transition="all 0.2s"
               _hover={{
                 transform: "translateY(-2px)",
@@ -126,12 +143,17 @@ const Sidebar = () => {
               }}
             >
               <Flex justify="space-between" align="center">
-                <Box flex="1">
+                <Box
+                  flex="1"
+                  onClick={() =>
+                    usergroups?.includes(group._id) && setSelectedGroup(group)
+                  }
+                >
                   <Flex align="center" mb={2}>
                     <Text fontWeight="bold" color="gray.800">
                       {group.name}
                     </Text>
-                    {group.isJoined && (
+                    {usergroups.includes(group._id) && (
                       <Badge ml={2} colorScheme="blue" variant="subtle">
                         Joined
                       </Badge>
@@ -152,7 +174,7 @@ const Sidebar = () => {
                   }}
                   transition="all 0.2s"
                 >
-                  {group.isJoined ? (
+                  {usergroups?.includes(group._id) ? (
                     <Text fontSize="sm" fontWeight="medium">
                       Leave
                     </Text>
