@@ -40,8 +40,9 @@ const Sidebar = ({ setSelectedGroup }) => {
   // Check if the login user is an admin
   const checkAdminStatus = () => {
     const userInfo = JSON.parse(localStorage.getItem("userInfo") || {});
+
     // update admin status
-    setIsAdmin(userInfo?.isAdmin || false);
+    setIsAdmin(userInfo?.user?.isAdmin || false);
   };
 
   // fetch all groups
@@ -65,15 +66,49 @@ const Sidebar = ({ setSelectedGroup }) => {
         .map((group) => group?._id);
 
       setUserGroups(userGroups);
-      console.log(userGroups);
     } catch (error) {
       console.log(error);
     }
   };
 
-  // fetch users groups
-
   // create groups
+  const handleCreateGroup = async () => {
+    try {
+      const userInfo = JSON.parse(localStorage.getItem("userInfo") || {});
+      const token = userInfo.user.token;
+
+      const { data } = await axios.post(
+        "http://localhost:5000/api/groups",
+        {
+          name: newGroupName,
+          description: newGroupDescription,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      toast({
+        title: "Group Created",
+        status: "success",
+        description: "Group created successfully",
+        duration: 3000,
+        isClosable: true,
+      });
+      onClose();
+      fetchGroups();
+      setNewGroupName("");
+      setNewGroupDescription("");
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error?.response?.data?.message || "An error occurred",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+  };
   // logout
   // join group
   // leave group
@@ -249,15 +284,8 @@ const Sidebar = ({ setSelectedGroup }) => {
               mt={4}
               width="full"
               onClick={() => {
-                toast({
-                  title: "Group created successfully",
-                  status: "success",
-                  duration: 3000,
-                  isClosable: true,
-                });
+                handleCreateGroup();
                 onClose();
-                setNewGroupName("");
-                setNewGroupDescription("");
               }}
             >
               Create Group
