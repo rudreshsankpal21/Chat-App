@@ -111,6 +111,36 @@ const Sidebar = ({ setSelectedGroup }) => {
   };
   // logout
   // join group
+  const handleJoinGroup = async (groupId) => {
+    try {
+      const userInfo = JSON.parse(localStorage.getItem("userInfo") || {});
+      const token = userInfo.user.token;
+
+      const { data } = await axios.post(
+        `http://localhost:5000/api/groups/${groupId}/join`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      await fetchGroups();
+      setSelectedGroup(groups.find((group) => group._id === groupId));
+      toast({
+        title: "Joined group successfully",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch (error) {
+      toast({
+        title: "Error joining group",
+        description: error?.response?.data?.message || "An error occurred",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+  };
   // leave group
   // Sample groups data
 
@@ -203,6 +233,7 @@ const Sidebar = ({ setSelectedGroup }) => {
                   colorScheme={group.isJoined ? "red" : "blue"}
                   variant={group.isJoined ? "ghost" : "solid"}
                   ml={3}
+                  onClick={() => handleJoinGroup(group._id)}
                   _hover={{
                     transform: group.isJoined ? "scale(1.05)" : "none",
                     bg: group.isJoined ? "red.50" : "blue.600",
