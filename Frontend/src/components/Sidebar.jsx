@@ -142,6 +142,36 @@ const Sidebar = ({ setSelectedGroup }) => {
     }
   };
   // leave group
+  const handleLeaveGroup = async (groupId) => {
+    try {
+      const userInfo = JSON.parse(localStorage.getItem("userInfo") || {});
+      const token = userInfo.user.token;
+
+      const { data } = await axios.post(
+        `http://localhost:5000/api/groups/${groupId}/leave`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      await fetchGroups();
+      setSelectedGroup(null);
+      toast({
+        title: "Left group successfully",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch (error) {
+      toast({
+        title: "Error joining group",
+        description: error?.response?.data?.message || "An error occurred",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+  };
   // Sample groups data
 
   return (
@@ -208,17 +238,12 @@ const Sidebar = ({ setSelectedGroup }) => {
               }}
             >
               <Flex justify="space-between" align="center">
-                <Box
-                  flex="1"
-                  onClick={() =>
-                    usergroups?.includes(group._id) && setSelectedGroup(group)
-                  }
-                >
+                <Box flex="1" onClick={() => setSelectedGroup(group)}>
                   <Flex align="center" mb={2}>
                     <Text fontWeight="bold" color="gray.800">
                       {group.name}
                     </Text>
-                    {usergroups.includes(group._id) && (
+                    {usergroups.includes(group?._id) && (
                       <Badge ml={2} colorScheme="blue" variant="subtle">
                         Joined
                       </Badge>
@@ -230,17 +255,21 @@ const Sidebar = ({ setSelectedGroup }) => {
                 </Box>
                 <Button
                   size="sm"
-                  colorScheme={group.isJoined ? "red" : "blue"}
-                  variant={group.isJoined ? "ghost" : "solid"}
+                  colorScheme={usergroups?.includes(group._id) ? "red" : "blue"}
+                  variant={usergroups?.includes(group?._id) ? "ghost" : "solid"}
                   ml={3}
-                  onClick={() => handleJoinGroup(group._id)}
+                  onClick={() => {
+                    usergroups?.includes(group._id)
+                      ? handleLeaveGroup(group._id)
+                      : handleJoinGroup(group._id);
+                  }}
                   _hover={{
                     transform: group.isJoined ? "scale(1.05)" : "none",
                     bg: group.isJoined ? "red.50" : "blue.600",
                   }}
                   transition="all 0.2s"
                 >
-                  {usergroups?.includes(group._id) ? (
+                  {usergroups.includes(group?._id) ? (
                     <Text fontSize="sm" fontWeight="medium">
                       Leave
                     </Text>
