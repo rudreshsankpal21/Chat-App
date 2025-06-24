@@ -21,7 +21,7 @@ import {
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { FiLogOut, FiPlus, FiUsers } from "react-icons/fi";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 const Sidebar = ({ setSelectedGroup }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -31,6 +31,7 @@ const Sidebar = ({ setSelectedGroup }) => {
   const [newGroupDescription, setNewGroupDescription] = useState("");
   const [isAdmin, setIsAdmin] = useState(true);
   const toast = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
     checkAdminStatus();
@@ -110,6 +111,10 @@ const Sidebar = ({ setSelectedGroup }) => {
     }
   };
   // logout
+  const handleLogout = () => {
+    localStorage.removeItem("userInfo");
+    navigate("/login");
+  };
   // join group
   const handleJoinGroup = async (groupId) => {
     try {
@@ -295,9 +300,7 @@ const Sidebar = ({ setSelectedGroup }) => {
         width="100%"
       >
         <Button
-          as={Link}
-          to="/login"
-          width="full"
+          onClick={handleLogout}
           variant="ghost"
           colorScheme="red"
           leftIcon={<Icon as={FiLogOut} />}
