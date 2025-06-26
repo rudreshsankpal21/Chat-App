@@ -108,37 +108,6 @@ const ChatArea = ({ selectedGroup, socket }) => {
     }
   };
 
-  // Sample data for demonstration
-  const sampleMessages = [
-    {
-      id: 1,
-      content: "Hey team! Just pushed the new updates to staging.",
-      sender: { username: "Sarah Chen" },
-      createdAt: "10:30 AM",
-      isCurrentUser: false,
-    },
-    {
-      id: 2,
-      content: "Great work! The new features look amazing 🚀",
-      sender: { username: "Alex Thompson" },
-      createdAt: "10:31 AM",
-      isCurrentUser: false,
-    },
-    {
-      id: 3,
-      content: "Thanks! Let's review it in our next standup.",
-      sender: { username: "You" },
-      createdAt: "10:32 AM",
-      isCurrentUser: true,
-    },
-  ];
-
-  const sampleUsers = [
-    { id: 1, username: "Sarah Chen", isOnline: true },
-    { id: 2, username: "Alex Thompson", isOnline: true },
-    { id: 3, username: "John Doe", isOnline: false },
-  ];
-
   return (
     <Flex h="100%" position="relative">
       <Box
@@ -291,7 +260,7 @@ const ChatArea = ({ selectedGroup, socket }) => {
         height="100%"
         flexShrink={0}
       >
-        <UsersList users={sampleUsers} />
+        {selectedGroup && <UsersList users={connectedUsers} />}
       </Box>
     </Flex>
   );
