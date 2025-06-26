@@ -23,7 +23,7 @@ const socketIo = (io) => {
 
       //   Broadcast join notification to all other users in the room
       socket.to(groupId).emit("notification", {
-        type: "USER_JOINed",
+        type: "USER_JOINED",
         message: `${user?.username} has joined the group`,
         user,
       });

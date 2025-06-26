@@ -32,8 +32,63 @@ const ChatArea = ({ selectedGroup, socket }) => {
     if (selectedGroup && socket) {
       // fetch messages
       fetchMessages();
+
+      socket.emit("join room", selectedGroup._id); // join room
+
+      // Message received
+      socket.on("message received", (newMessage) => {
+        setMessages((prev) => [...prev, newMessage]);
+      });
+
+      // Users in room
+      socket.on("users in room", (user) => {
+        setConnectedUsers(user);
+      });
+
+      // Users left
+      socket.on("users left", (user) => {
+        setConnectedUsers((prev) => prev.filter((u) => u?._id !== user));
+      });
+
+      // Notification
+      socket.on("notification", (notification) => {
+        toast({
+          title:
+            notification.type === "USER_JOINED" ? "User joined" : "User left",
+          description: notification.message,
+          status: "info",
+          duration: 3000,
+          isClosable: true,
+          position: "top-right",
+        });
+      });
+
+      socket.on("user typing", ({ username }) => {
+        setTypingUsers((prev) => new Set(prev).add(username));
+      });
+
+      // User stop typing
+      socket.on("user stop typing", ({ username }) => {
+        setTypingUsers((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(username);
+          return newSet;
+        });
+      });
+
+      // Clean up
+      return () => {
+        socket.emit("leave room", selectedGroup._id); // leave room
+        socket.off("message received");
+        socket.off("users in room");
+        socket.off("users left");
+        socket.off("notification");
+        socket.off("user typing");
+        socket.off("user stop typing");
+      };
     }
-  }, [selectedGroup, socket]);
+  }, [selectedGroup, socket, toast]);
+
   // fetch messages
   const fetchMessages = async () => {
     const currentUser = JSON.parse(localStorage.getItem("userInfo") || {});
