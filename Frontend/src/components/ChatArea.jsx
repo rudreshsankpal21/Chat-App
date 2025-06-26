@@ -10,11 +10,49 @@ import {
   Avatar,
   InputGroup,
   InputRightElement,
+  useToast,
 } from "@chakra-ui/react";
 import { FiSend, FiInfo, FiMessageCircle } from "react-icons/fi";
 import UsersList from "./UsersList";
+import { useEffect, useRef, useState } from "react";
+import axios from "axios";
 
-const ChatArea = () => {
+const ChatArea = ({ selectedGroup, socket }) => {
+  const [messages, setMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState("");
+  const [connectedUsers, setConnectedUsers] = useState([]);
+  const [isTyping, setIsTyping] = useState(false);
+  const [typingUsers, setTypingUsers] = useState(new Set()); // used to create a set object which is a collection of unique values & can store any type of values
+  const messagesEndRef = useRef(null); // scroll to the bottom of the chat area
+  const typingTimeoutRef = useRef(null);
+  const toast = useToast();
+
+  const currentUser = JSON.parse(localStorage.getItem("userInfo") || {});
+  useEffect(() => {
+    if (selectedGroup && socket) {
+      // fetch messages
+      fetchMessages();
+    }
+  }, [selectedGroup, socket]);
+  // fetch messages
+  const fetchMessages = async () => {
+    const currentUser = JSON.parse(localStorage.getItem("userInfo") || {});
+    const token = currentUser.user.token;
+    try {
+      const { data } = await axios.get(
+        `http://localhost:5000/api/messages/${selectedGroup._id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      console.log(data);
+
+      // setMessages(data.messages);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   // Sample data for demonstration
   const sampleMessages = [
     {

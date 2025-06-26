@@ -26,7 +26,7 @@ const Chat = () => {
         <Sidebar setSelectedGroup={setSelectedGroup} />
       </Box>
       <Box flex="1">
-        <ChatArea />
+        {socket && <ChatArea selectedGroup={selectedGroup} socket={socket} />}
       </Box>
     </Flex>
   );
