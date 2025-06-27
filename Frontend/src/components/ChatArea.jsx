@@ -16,6 +16,7 @@ import { FiSend, FiInfo, FiMessageCircle } from "react-icons/fi";
 import UsersList from "./UsersList";
 import { useEffect, useRef, useState } from "react";
 import axios from "axios";
+import { set } from "mongoose";
 
 const ChatArea = ({ selectedGroup, socket }) => {
   const [messages, setMessages] = useState([]);
@@ -145,9 +146,40 @@ const ChatArea = ({ selectedGroup, socket }) => {
   };
 
   // handle typing
+  const handleTyping = (e) => {
+    setNewMessage(e.target.value);
+    if (!isTyping && selectedGroup) {
+      setIsTyping(true);
+      socket.emit("typing", {
+        groupId: selectedGroup?._id,
+        username: currentUser?.user?.username,
+      });
+    }
+
+    // clear existing timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    // set new timeout
+    typingTimeoutRef.current = setTimeout(() => {
+      if (selectedGroup) {
+        socket.emit("stop typing", {
+          groupId: selectedGroup?._id,
+        });
+      }
+      setIsTyping(false);
+    }, 1500);
+  };
 
   // format time
-
+  const formatTime = (date) => {
+    return new Date(date).toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
+  };
   // render typing indicator
 
   const sampleMessages = [];

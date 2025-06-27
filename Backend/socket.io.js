@@ -60,7 +60,7 @@ const socketIo = (io) => {
     });
 
     // Typing indicator
-    socket.on("typing", (groupId, username) => {
+    socket.on("typing", ({ groupId, username }) => {
       // Broadcast typing indicator to all other users in the room
       socket.to(groupId).emit("user typing", { username });
     });
