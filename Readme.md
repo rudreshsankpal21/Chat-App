@@ -32,24 +32,6 @@ A full-stack real-time chat application built with **React**, **Node.js**, **Exp
 
 ---
 
-## 📂 Folder Structure
-
-```bash
-chat-app/
-├── client/         # React frontend
-│   ├── src/
-│   │   ├── components/
-│   │   ├── App.js
-│   │   └── index.js
-│   └── package.json
-├── server/         # Express + Socket.IO backend
-│   ├── index.js
-│   └── package.json
-├── README.md
-```
-
-````
-
 ---
 
 ## 🧑‍💻 Getting Started
@@ -89,4 +71,7 @@ npm start
   - All connected clients receive and display the message in real time.
 
 ---
-````
+
+```
+
+```
