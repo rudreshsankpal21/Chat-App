@@ -28,6 +28,7 @@ const ChatArea = ({ selectedGroup, socket }) => {
   const toast = useToast();
 
   const currentUser = JSON.parse(localStorage.getItem("userInfo") || {});
+
   useEffect(() => {
     if (selectedGroup && socket) {
       // fetch messages
@@ -92,6 +93,7 @@ const ChatArea = ({ selectedGroup, socket }) => {
   // fetch messages
   const fetchMessages = async () => {
     const currentUser = JSON.parse(localStorage.getItem("userInfo") || {});
+
     const token = currentUser.user.token;
     try {
       const { data } = await axios.get(
@@ -107,6 +109,48 @@ const ChatArea = ({ selectedGroup, socket }) => {
       console.log(error);
     }
   };
+
+  // send message
+  const sendMessage = async () => {
+    if (!newMessage.trim()) {
+      return;
+    }
+    try {
+      const token = currentUser.user.token;
+
+      const { data } = await axios.post(
+        "http://localhost:5000/api/messages",
+        {
+          content: newMessage,
+          groupId: selectedGroup?._id,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      socket.emit("new message", {
+        ...data,
+        groupId: selectedGroup?._id,
+      });
+      setMessages([...messages, data]);
+      setNewMessage("");
+    } catch (error) {
+      toast({
+        title: "Error",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
+
+  // handle typing
+
+  // format time
+
+  // render typing indicator
+
+  const sampleMessages = [];
 
   return (
     <Flex h="100%" position="relative">
