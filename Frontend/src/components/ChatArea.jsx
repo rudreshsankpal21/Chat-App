@@ -14,16 +14,17 @@ import {
 } from "@chakra-ui/react";
 import { FiSend, FiInfo, FiMessageCircle } from "react-icons/fi";
 import UsersList from "./UsersList";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
+import { useEffect } from "react";
 import axios from "axios";
 
-const ChatArea = ({ selectedGroup, socket }) => {
+const ChatArea = ({ selectedGroup, socket, setSelectedGroup }) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [connectedUsers, setConnectedUsers] = useState([]);
   const [isTyping, setIsTyping] = useState(false);
-  const [typingUsers, setTypingUsers] = useState(new Set()); // used to create a set object which is a collection of unique values & can store any type of values
-  const messagesEndRef = useRef(null); // scroll to the bottom of the chat area
+  const [typingUsers, setTypingUsers] = useState(new Set());
+  const messagesEndRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const toast = useToast();
 
@@ -31,31 +32,31 @@ const ChatArea = ({ selectedGroup, socket }) => {
 
   useEffect(() => {
     if (selectedGroup && socket) {
-      // fetch messages
+      //fetch messages
       fetchMessages();
-
-      socket.emit("join room", selectedGroup._id); // join room
-
-      // Message received
-      socket.on("message received", (newMessage) => {
+      socket.emit("join room", selectedGroup?._id);
+      socket.on("message receive", (newMessage) => {
         setMessages((prev) => [...prev, newMessage]);
       });
 
-      // Users in room
-      socket.on("users in room", (user) => {
-        setConnectedUsers(user);
+      socket.on("users in room", (users) => {
+        setConnectedUsers(users);
       });
 
-      // Users left
-      socket.on("users left", (user) => {
-        setConnectedUsers((prev) => prev.filter((u) => u?._id !== user));
+      socket.on("user joined", (user) => {
+        setConnectedUsers((prev) => [...prev, user]);
       });
 
-      // Notification
+      socket.on("user left", (userId) => {
+        setConnectedUsers((prev) =>
+          prev.filter((user) => user?._id !== userId)
+        );
+      });
+
       socket.on("notification", (notification) => {
         toast({
           title:
-            notification.type === "USER_JOINED" ? "User joined" : "User left",
+            notification?.type === "USER_JOINED" ? "New User" : "Notification",
           description: notification.message,
           status: "info",
           duration: 3000,
@@ -68,7 +69,6 @@ const ChatArea = ({ selectedGroup, socket }) => {
         setTypingUsers((prev) => new Set(prev).add(username));
       });
 
-      // User stop typing
       socket.on("user stop typing", ({ username }) => {
         setTypingUsers((prev) => {
           const newSet = new Set(prev);
@@ -76,50 +76,45 @@ const ChatArea = ({ selectedGroup, socket }) => {
           return newSet;
         });
       });
-
-      // Clean up
+      //clean up
       return () => {
-        socket.emit("leave room", selectedGroup._id); // leave room
+        socket.emit("leave room", selectedGroup?._id);
         socket.off("message received");
         socket.off("users in room");
-        socket.off("users left");
+        socket.off("user joined");
+        socket.off("user left");
         socket.off("notification");
         socket.off("user typing");
         socket.off("user stop typing");
       };
     }
   }, [selectedGroup, socket, toast]);
-
-  // fetch messages
+  //fetch messages
   const fetchMessages = async () => {
     const currentUser = JSON.parse(localStorage.getItem("userInfo") || {});
-
-    const token = currentUser.user.token;
+    const token = currentUser?.token;
     try {
       const { data } = await axios.get(
-        `http://localhost:5000/api/messages/${selectedGroup._id}`,
+        `$http://localhost:5000/api/messages/${selectedGroup?._id}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      console.log(data);
-
-      // setMessages(data.messages);
+      setMessages(data);
     } catch (error) {
       console.log(error);
     }
   };
 
-  // send message
+  //send message
   const sendMessage = async () => {
     if (!newMessage.trim()) {
       return;
     }
     try {
-      const token = currentUser.user.token;
-
+      const token = currentUser.token;
       const { data } = await axios.post(
-        "http://localhost:5000/api/messages",
+        `$http://localhost:5000/api/messages`,
         {
           content: newMessage,
           groupId: selectedGroup?._id,
@@ -132,35 +127,33 @@ const ChatArea = ({ selectedGroup, socket }) => {
         ...data,
         groupId: selectedGroup?._id,
       });
+
       setMessages([...messages, data]);
       setNewMessage("");
     } catch (error) {
       toast({
-        title: "Error",
+        title: "Error sending message",
         status: "error",
         duration: 3000,
         isClosable: true,
       });
     }
   };
-
-  // handle typing
+  //handleTyping
   const handleTyping = (e) => {
     setNewMessage(e.target.value);
     if (!isTyping && selectedGroup) {
       setIsTyping(true);
       socket.emit("typing", {
         groupId: selectedGroup?._id,
-        username: currentUser?.user?.username,
+        username: currentUser.username,
       });
     }
-
-    // clear existing timeout
+    //clear existing timeout
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }
-
-    // set new timeout
+    //set new timeout
     typingTimeoutRef.current = setTimeout(() => {
       if (selectedGroup) {
         socket.emit("stop typing", {
@@ -168,78 +161,75 @@ const ChatArea = ({ selectedGroup, socket }) => {
         });
       }
       setIsTyping(false);
-    }, 1500);
+    }, 2000);
   };
-
-  // format time
+  //format time
   const formatTime = (date) => {
     return new Date(date).toLocaleTimeString("en-US", {
       hour: "2-digit",
       minute: "2-digit",
-      hour12: true,
     });
   };
-
-  // render typing indicator
+  //render typing indicator
   const renderTypingIndicator = () => {
     if (typingUsers.size === 0) return null;
     const typingUsersArray = Array.from(typingUsers);
-    return typingUsersArray.map((username) => (
+
+    return typingUsersArray?.map((username) => (
       <Box
         key={username}
         alignSelf={
-          username === currentUser?.user?.username ? "flex-start" : "flex-end"
+          username === currentUser?.username ? "flex-start" : "flex-end"
         }
         maxW="70%"
       >
         <Flex
           align="center"
-          bg={username === currentUser?.user?.username ? "blue.50" : "gray.50"}
+          bg={username === currentUser?.username ? "blue.50" : "gray.50"}
           p={2}
           borderRadius="lg"
           gap={2}
         >
-          {/* Current user (You) - Left side*/}
-          {username === currentUser?.user?.username ? (
+          {/* current user (You) -left side */}
+          {username === currentUser?.username ? (
             <>
-              <Avatar size={xs} name={username} />
+              <Avatar size="xs" name={username} />
               <Flex align="center" gap={1}>
-                <Text fontSize="sm" color="gray.500" fontStyle={"italic"}>
-                  You are typing...
+                <Text fontSize="sm" color="gray.500" fontStyle="italic">
+                  You are typing
                 </Text>
                 <Flex gap={1}>
-                  {[1, 2, 3].map((dot) => {
+                  {[1, 2, 3].map((dot) => (
                     <Box
                       key={dot}
-                      w="4px"
-                      h="4px"
+                      w="3px"
+                      h="3px"
                       borderRadius="full"
                       bg="gray.500"
-                    ></Box>;
-                  })}
+                    />
+                  ))}
                 </Flex>
               </Flex>
             </>
           ) : (
             <>
-              {/* user is typing */}
               <Flex align="center" gap={1}>
-                <Text fontSize="sm" color="gray.500" fontStyle={"italic"}>
-                  {username} is typing...
+                <Text fontSize="sm" color="gray.500" fontStyle="italic">
+                  {username} is typing
                 </Text>
                 <Flex gap={1}>
-                  {[1, 2, 3].map((dot) => {
+                  {[1, 2, 3].map((dot) => (
                     <Box
                       key={dot}
-                      w="4px"
-                      h="4px"
+                      w="3px"
+                      h="3px"
                       borderRadius="full"
                       bg="gray.500"
-                    ></Box>;
-                  })}
+                    />
+                  ))}
                 </Flex>
               </Flex>
-              <Avatar size={xs} name={username} />
+              <Avatar size="xs" name={username} />
             </>
           )}
         </Flex>
@@ -247,16 +237,18 @@ const ChatArea = ({ selectedGroup, socket }) => {
     ));
   };
 
-  const sampleMessages = [];
-
   return (
-    <Flex h="100%" position="relative">
+    <Flex
+      h="100%"
+      position="relative"
+      direction={{ base: "column", lg: "row" }}
+    >
       <Box
         flex="1"
         display="flex"
         flexDirection="column"
         bg="gray.50"
-        maxW={`calc(100% - 260px)`}
+        maxW={{ base: "100%", lg: `calc(100% - 260px)` }}
       >
         {/* Chat Header */}
         {selectedGroup ? (
@@ -458,14 +450,15 @@ const ChatArea = ({ selectedGroup, socket }) => {
         )}
       </Box>
 
-      {/* UsersList with fixed width */}
+      {/* UsersList with responsive width */}
       <Box
-        width="260px"
-        position="sticky"
+        width={{ base: "100%", lg: "260px" }}
+        position={{ base: "static", lg: "sticky" }}
         right={0}
         top={0}
-        height="100%"
+        height={{ base: "auto", lg: "100%" }}
         flexShrink={0}
+        display={{ base: "none", lg: "block" }}
       >
         {selectedGroup && <UsersList users={connectedUsers} />}
       </Box>
