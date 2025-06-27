@@ -259,137 +259,203 @@ const ChatArea = ({ selectedGroup, socket }) => {
         maxW={`calc(100% - 260px)`}
       >
         {/* Chat Header */}
-        <Flex
-          px={6}
-          py={4}
-          bg="white"
-          borderBottom="1px solid"
-          borderColor="gray.200"
-          align="center"
-          boxShadow="sm"
-        >
-          <Icon as={FiMessageCircle} fontSize="24px" color="blue.500" mr={3} />
-          <Box flex="1">
-            <Text fontSize="lg" fontWeight="bold" color="gray.800">
-              Team Chat
-            </Text>
-            <Text fontSize="sm" color="gray.500">
-              General Discussion
-            </Text>
-          </Box>
-          <Icon
-            as={FiInfo}
-            fontSize="20px"
-            color="gray.400"
-            cursor="pointer"
-            _hover={{ color: "blue.500" }}
-          />
-        </Flex>
-
-        {/* Messages Area */}
-        <VStack
-          flex="1"
-          overflowY="auto"
-          spacing={4}
-          align="stretch"
-          px={6}
-          py={4}
-          position="relative"
-          sx={{
-            "&::-webkit-scrollbar": {
-              width: "8px",
-            },
-            "&::-webkit-scrollbar-track": {
-              width: "10px",
-            },
-            "&::-webkit-scrollbar-thumb": {
-              background: "gray.200",
-              borderRadius: "24px",
-            },
-          }}
-        >
-          {sampleMessages.map((message) => (
-            <Box
-              key={message.id}
-              alignSelf={message.isCurrentUser ? "flex-start" : "flex-end"}
-              maxW="70%"
+        {selectedGroup ? (
+          <>
+            <Flex
+              px={6}
+              py={4}
+              bg="white"
+              borderBottom="1px solid"
+              borderColor="gray.200"
+              align="center"
+              boxShadow="sm"
             >
-              <Flex direction="column" gap={1}>
-                <Flex
-                  align="center"
-                  mb={1}
-                  justifyContent={
-                    message.isCurrentUser ? "flex-start" : "flex-end"
-                  }
-                  gap={2}
-                >
-                  {message.isCurrentUser ? (
-                    <>
-                      <Avatar size="xs" name={message.sender.username} />
-                      <Text fontSize="xs" color="gray.500">
-                        You • {message.createdAt}
-                      </Text>
-                    </>
-                  ) : (
-                    <>
-                      <Text fontSize="xs" color="gray.500">
-                        {message.sender.username} • {message.createdAt}
-                      </Text>
-                      <Avatar size="xs" name={message.sender.username} />
-                    </>
-                  )}
-                </Flex>
-
-                <Box
-                  bg={message.isCurrentUser ? "blue.500" : "white"}
-                  color={message.isCurrentUser ? "white" : "gray.800"}
-                  p={3}
-                  borderRadius="lg"
-                  boxShadow="sm"
-                >
-                  <Text>{message.content}</Text>
-                </Box>
-              </Flex>
-            </Box>
-          ))}
-        </VStack>
-
-        {/* Message Input */}
-        <Box
-          p={4}
-          bg="white"
-          borderTop="1px solid"
-          borderColor="gray.200"
-          position="relative"
-          zIndex="1"
-        >
-          <InputGroup size="lg">
-            <Input
-              placeholder="Type your message..."
-              pr="4.5rem"
-              bg="gray.50"
-              border="none"
-              _focus={{
-                boxShadow: "none",
-                bg: "gray.100",
-              }}
-            />
-            <InputRightElement width="4.5rem">
               <Button
-                h="1.75rem"
-                size="sm"
-                colorScheme="blue"
-                borderRadius="full"
-                _hover={{
-                  transform: "translateY(-1px)",
-                }}
-                transition="all 0.2s"
+                display={{ base: "inline-flex", md: "none" }}
+                variant="ghost"
+                mr={2}
+                onClick={() => setSelectedGroup(null)}
               >
-                <Icon as={FiSend} />
+                ←
               </Button>
-            </InputRightElement>
-          </InputGroup>
-        </Box>
+              <Icon
+                as={FiMessageCircle}
+                fontSize="24px"
+                color="blue.500"
+                mr={3}
+              />
+              <Box flex="1">
+                <Text fontSize="lg" fontWeight="bold" color="gray.800">
+                  {selectedGroup.name}
+                </Text>
+                <Text fontSize="sm" color="gray.500">
+                  {selectedGroup.description}
+                </Text>
+              </Box>
+              <Icon
+                as={FiInfo}
+                fontSize="20px"
+                color="gray.400"
+                cursor="pointer"
+                _hover={{ color: "blue.500" }}
+              />
+            </Flex>
+
+            {/* Messages Area */}
+            <VStack
+              flex="1"
+              overflowY="auto"
+              spacing={4}
+              align="stretch"
+              px={6}
+              py={4}
+              position="relative"
+              sx={{
+                "&::-webkit-scrollbar": {
+                  width: "8px",
+                },
+                "&::-webkit-scrollbar-track": {
+                  width: "10px",
+                },
+                "&::-webkit-scrollbar-thumb": {
+                  background: "gray.200",
+                  borderRadius: "24px",
+                },
+              }}
+            >
+              {messages.map((message) => (
+                <Box
+                  key={message._id}
+                  alignSelf={
+                    message.sender._id === currentUser?._id
+                      ? "flex-start"
+                      : "flex-end"
+                  }
+                  maxW="70%"
+                >
+                  <Flex direction="column" gap={1}>
+                    <Flex
+                      align="center"
+                      mb={1}
+                      justifyContent={
+                        message.sender._id === currentUser?._id
+                          ? "flex-start"
+                          : "flex-end"
+                      }
+                      gap={2}
+                    >
+                      {message.sender._id === currentUser?._id ? (
+                        <>
+                          <Avatar size="xs" name={message.sender.username} />
+                          <Text fontSize="xs" color="gray.500">
+                            You • {formatTime(message.createdAt)}
+                          </Text>
+                        </>
+                      ) : (
+                        <>
+                          <Text fontSize="xs" color="gray.500">
+                            {message.sender.username} •{" "}
+                            {formatTime(message.createdAt)}
+                          </Text>
+                          <Avatar size="xs" name={message.sender.username} />
+                        </>
+                      )}
+                    </Flex>
+
+                    <Box
+                      bg={
+                        message?.sender._id === currentUser?._id
+                          ? "blue.500"
+                          : "white"
+                      }
+                      color={
+                        message?.sender._id === currentUser?._id
+                          ? "white"
+                          : "gray.800"
+                      }
+                      p={3}
+                      borderRadius="lg"
+                      boxShadow="sm"
+                    >
+                      <Text>{message.content}</Text>
+                    </Box>
+                  </Flex>
+                </Box>
+              ))}
+              {renderTypingIndicator()}
+              <div ref={messagesEndRef} />
+            </VStack>
+
+            {/* Message Input */}
+            <Box
+              p={4}
+              bg="white"
+              borderTop="1px solid"
+              borderColor="gray.200"
+              position="relative"
+              zIndex="1"
+            >
+              <InputGroup size="lg">
+                <Input
+                  value={newMessage}
+                  onChange={handleTyping}
+                  placeholder="Type your message..."
+                  pr="4.5rem"
+                  bg="gray.50"
+                  border="none"
+                  _focus={{
+                    boxShadow: "none",
+                    bg: "gray.100",
+                  }}
+                  onKeyPress={(e) => {
+                    if (e.key === "Enter") {
+                      sendMessage();
+                    }
+                  }}
+                />
+                <InputRightElement width="4.5rem">
+                  <Button
+                    h="1.75rem"
+                    size="sm"
+                    colorScheme="blue"
+                    borderRadius="full"
+                    _hover={{
+                      transform: "translateY(-1px)",
+                    }}
+                    transition="all 0.2s"
+                    onClick={sendMessage}
+                  >
+                    <Icon as={FiSend} />
+                  </Button>
+                </InputRightElement>
+              </InputGroup>
+            </Box>
+          </>
+        ) : (
+          <>
+            <Flex
+              h="100%"
+              direction="column"
+              align="center"
+              justify="center"
+              p={8}
+              textAlign="center"
+            >
+              <Icon
+                as={FiMessageCircle}
+                fontSize="64px"
+                color="gray.300"
+                mb={4}
+              />
+              <Text fontSize="xl" fontWeight="medium" color="gray.500" mb={2}>
+                Welcome to the Chat
+              </Text>
+              <Text color="gray.500" mb={2}>
+                Select a group from the sidebar to start chatting
+              </Text>
+            </Flex>
+          </>
+        )}
       </Box>
 
       {/* UsersList with fixed width */}
