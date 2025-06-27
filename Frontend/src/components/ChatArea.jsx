@@ -16,7 +16,6 @@ import { FiSend, FiInfo, FiMessageCircle } from "react-icons/fi";
 import UsersList from "./UsersList";
 import { useEffect, useRef, useState } from "react";
 import axios from "axios";
-import { set } from "mongoose";
 
 const ChatArea = ({ selectedGroup, socket }) => {
   const [messages, setMessages] = useState([]);
@@ -180,7 +179,73 @@ const ChatArea = ({ selectedGroup, socket }) => {
       hour12: true,
     });
   };
+
   // render typing indicator
+  const renderTypingIndicator = () => {
+    if (typingUsers.size === 0) return null;
+    const typingUsersArray = Array.from(typingUsers);
+    return typingUsersArray.map((username) => (
+      <Box
+        key={username}
+        alignSelf={
+          username === currentUser?.user?.username ? "flex-start" : "flex-end"
+        }
+        maxW="70%"
+      >
+        <Flex
+          align="center"
+          bg={username === currentUser?.user?.username ? "blue.50" : "gray.50"}
+          p={2}
+          borderRadius="lg"
+          gap={2}
+        >
+          {/* Current user (You) - Left side*/}
+          {username === currentUser?.user?.username ? (
+            <>
+              <Avatar size={xs} name={username} />
+              <Flex align="center" gap={1}>
+                <Text fontSize="sm" color="gray.500" fontStyle={"italic"}>
+                  You are typing...
+                </Text>
+                <Flex gap={1}>
+                  {[1, 2, 3].map((dot) => {
+                    <Box
+                      key={dot}
+                      w="4px"
+                      h="4px"
+                      borderRadius="full"
+                      bg="gray.500"
+                    ></Box>;
+                  })}
+                </Flex>
+              </Flex>
+            </>
+          ) : (
+            <>
+              {/* user is typing */}
+              <Flex align="center" gap={1}>
+                <Text fontSize="sm" color="gray.500" fontStyle={"italic"}>
+                  {username} is typing...
+                </Text>
+                <Flex gap={1}>
+                  {[1, 2, 3].map((dot) => {
+                    <Box
+                      key={dot}
+                      w="4px"
+                      h="4px"
+                      borderRadius="full"
+                      bg="gray.500"
+                    ></Box>;
+                  })}
+                </Flex>
+              </Flex>
+              <Avatar size={xs} name={username} />
+            </>
+          )}
+        </Flex>
+      </Box>
+    ));
+  };
 
   const sampleMessages = [];
 
